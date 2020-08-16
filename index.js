@@ -26,9 +26,9 @@ api.start()
 
 api.on('update', update => {
 	try {
-		// replace @nameistakendamnitbot
-		update.message.text = update.message.text.replace('@nameistakendamnitbot', '');
-		if (update.message.text.indexOf('/start') === 0 || update.message.text === '/spam') {
+		// replace bot name
+		update.message.text = update.message.text.replace(process.env.BOT_NAME, '');
+		if (update.message.text === '/spam') {
 			// message everyone
 			db.all('SELECT telegramId, name FROM users', [], (err, rows) => {
 				if (err) {
@@ -86,7 +86,7 @@ api.on('update', update => {
 		}
 	}
 	catch (err) {
-		console.log(err);
+		console.error(err);
 		api.sendMessage({
 			chat_id: update.message.chat.id,
 			text: `Error: ${JSON.stringify(err)}`
