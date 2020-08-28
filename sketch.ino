@@ -5,8 +5,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-const char* SSID = "wifi";
-const char* PASSWORD = "password";
+const char* SSID = "";
+const char* PASSWORD = "";
 
 String connectToTelegram(String command) {
   IPAddress server(149, 154, 167, 220);
@@ -14,7 +14,7 @@ String connectToTelegram(String command) {
   client->setInsecure();
   HTTPClient https;
   String message = "";
-  if (https.begin(*client, "https://api.telegram.org/bot<token>/" + command)) {
+  if (https.begin(*client, "https://api.telegram.org/<token>/" + command)) {
     int httpCode = https.GET();
     if (httpCode > 0) {
       if (httpCode == HTTP_CODE_OK) {
@@ -29,12 +29,12 @@ String connectToTelegram(String command) {
   return message;
 }
 
-void sendMessage(String chatId, String message) {
-  connectToTelegram("sendMessage?chat_id=" + chatId + "&text=" + message);
+String sendMessage(String chatId, String message) {
+  return connectToTelegram("sendMessage?chat_id=" + chatId + "&text=" + message);
 }
 
-void sendMessage(String chatId, String message, String parseMode) {
-  connectToTelegram("sendMessage?chat_id=" + chatId + "&text=" + message + "&parse_mode=" + parseMode);
+String sendMessage(String chatId, String message, String parseMode) {
+  return connectToTelegram("sendMessage?chat_id=" + chatId + "&text=" + message + "&parse_mode=" + parseMode);
 }
 
 String lastUpdate = "";
@@ -64,11 +64,12 @@ void getUpdates() {
       String updateIdString(updateIdInt);
       lastUpdate = updateIdString;
       String message = doc["result"][0]["message"]["text"];
-      String chatId = doc["result"][0]["message"]["chat"]["id"];
+      int chatIdIndex = response.indexOf("\"chat\":{\"id\":") + 13;
+      String chatId = response.substring(chatIdIndex, chatIdIndex + 14);
       String userId = doc["result"][0]["message"]["from"]["id"];
       String userName = doc["result"][0]["message"]["from"]["first_name"];
-      Serial.println("ID: " + lastUpdate + " Message: " + message);
-      message.replace("<bot-name>", "");
+      Serial.println("ID: " + lastUpdate + " Chat: " + chatId + " Message: " + message);
+      message.replace("@<bot-name>", "");
       if (message.equals("/hi")) {
         sendMessage(chatId, "Hello!");
       }
@@ -84,7 +85,7 @@ void getUpdates() {
           else {
             hlList[hlListCount][0] = userId;
             hlList[hlListCount++][1] = userName;
-            sendMessage(chatId, "Added " + userName + " to the HL List!");
+            sendMessage(chatId, "Added " + userName + " to the list!");
           }          
         }
       }
@@ -98,16 +99,16 @@ void getUpdates() {
             ++index;
           } 
           --hlListCount;
-          sendMessage(chatId, "Removed " + userName + " from the HL List!");
+          sendMessage(chatId, "Removed " + userName + " from the list!");
         }
         else {
           sendMessage(chatId, "You weren't enrolled in the first place :P");
         }
       }
       else if (message.equals("/spam")) {
-        String response = "*" + userName + "* has started a game!\nJoin up!\n\n";
+        String response = "*" + userName + "* has started a game!%0AJoin up!%0A%0A";
         for (int i = 0; i < hlListCount; ++i) {
-          response += "[" + hlList[i][1] + "](tg://user?id=" + hlList[i][0] + ")\n";
+          Serial.println(response.concat("[" + hlList[i][1] + "](tg://user?id=" + hlList[i][0] + ")%0A"));
         }
         sendMessage(chatId, response, "Markdown");
       }
@@ -133,5 +134,5 @@ void setup() {
 
 void loop() {
   getUpdates();
-  delay(2000);
+  delay(1500);
 }
