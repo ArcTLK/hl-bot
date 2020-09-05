@@ -29,7 +29,13 @@ api.on('update', update => {
 		if (update.message && update.message.text) {
 			// replace bot name
 			update.message.text = update.message.text.replace(process.env.BOT_NAME, '');
-			if (update.message.text === '/spam') {
+			if (update.message.text === '/hi') {
+				api.sendMessage({
+					chat_id: update.message.chat.id,
+					text: 'YOLO!'
+				});
+			}
+			else if (update.message.text === '/spam') {
 				// message everyone
 				db.all('SELECT telegramId, name FROM users', [], (err, rows) => {
 					if (err) {
@@ -42,7 +48,7 @@ api.on('update', update => {
 						const names = rows.map(x => `[${x.name}](tg://user?id=${x.telegramId})`);
 						api.sendMessage({
 							chat_id: update.message.chat.id,
-							text: `*${update.message.from.first_name}* has started a game!\nJoin up!\n\n${names.join('\n')}`,
+							text: `*${update.message.from.first_name}* wants to play!\nJoin up ppl!\n\n${names.join('\n')}`,
 							parse_mode: 'Markdown'
 						}).catch(console.error);
 					}
