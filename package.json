@@ -13,5 +13,8 @@
     "dotenv": "^8.2.0",
     "sqlite3": "^5.0.0",
     "telegram-bot-api": "^2.0.1"
+  },
+  "devDependencies": {
+    "node-pre-gyp": "0.12.0"
   }
 }
